@@ -52,13 +52,10 @@ export const addMessage = async (req, res, next) => {
   try {
     const prisma = getPrismaInstance();
 
-    console.log("Received request body:", req.body);
     const { message, from, to } = req.body;
-    console.log("message:", message, "from:", from, "to:", to);
+    const getUser = onlineUsers.get(to);
 
     if (message && from && to) {
-      const getUser = onlineUsers.get(to);
-
       const newMessage = await prisma.messages.create({
         data: {
           message: message,
@@ -68,16 +65,10 @@ export const addMessage = async (req, res, next) => {
         },
         include: { sender: true, reciever: true },
       });
-
-      console.log("Message created successfully:", newMessage);
-
       return res.status(201).send({ message: newMessage });
     }
-
-    console.log("Invalid request. Sending 403 response.");
-    return res.status(403).send("From, to and Message are required.");
+    return res.status(400).send("From, to and Message is required.");
   } catch (err) {
-    console.error("Error processing request:", err);
     next(err);
   }
 };
